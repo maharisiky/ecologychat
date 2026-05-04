@@ -89,8 +89,7 @@ class WebhookView(APIView):
             # manage payload
             print("Sending response message")
             print("Generating response message")
-            response_message = self.ia.ask_gemini(sender_id, message)
-            print(f"Response message: {response_message}")
+            response_message = self.ia.ask(sender_id, message)
 
             self.send_message(sender_id, response_message)
         except Exception:

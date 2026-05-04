@@ -12,7 +12,7 @@ class PrivacyPolicyView(APIView):
 
         **Dernière mise à jour : 8 avril 2025**
 
-        Bienvenue sur Hosodoko-bot, un bot Messenger développé par Monja. Nous nous engageons à protéger votre vie privée. Cette Politique de confidentialité explique comment nous collectons, utilisons, partageons et protégeons vos données personnelles lorsque vous interagissez avec notre bot via Facebook Messenger (ci-après « le Bot »). En utilisant le Bot, vous acceptez les pratiques décrites ici.
+        Bienvenue sur Ecologu Chat, un bot Messenger développé par Monja. Nous nous engageons à protéger votre vie privée. Cette Politique de confidentialité explique comment nous collectons, utilisons, partageons et protégeons vos données personnelles lorsque vous interagissez avec notre bot via Facebook Messenger (ci-après « le Bot »). En utilisant le Bot, vous acceptez les pratiques décrites ici.
 
         #### 1. Informations que nous collectons
         - **Données personnelles identifiables** : Votre identifiant Facebook unique (Page-Scoped ID, ou PSID), fourni par Facebook Messenger lorsque vous nous envoyez un message. Les messages que vous envoyez au Bot, y compris leur contenu textuel.

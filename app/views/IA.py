@@ -2,9 +2,16 @@ from app.models import *
 from dotenv import load_dotenv
 import os
 import re
-import google.generativeai as genai
-from pathlib import Path
 import logging
+from pathlib import Path
+
+# optional import for Gemini -- keep existing behavior
+try:
+    import google.generativeai as genai
+except Exception:
+    genai = None
+
+from app.infrastructure.groq.text_generation_repository import GroqTextGenerationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -15,10 +22,14 @@ _GEMINI_FALLBACK_MODELS = [
     "gemini-2.5-flash-lite",
 ]
 
-class IA :
+class IA:
     def __init__(self):
         load_dotenv()
         self.primary_model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+        # provider selection: 'gemini' (default) or 'groq'
+        self.provider = (os.getenv("IA_PROVIDER", "gemini") or "gemini").strip().lower()
+        # groq repository (lazy-friendly)
+        self.groq_repository = GroqTextGenerationRepository()
 
     def get_prompt(self):
         prompt_file = Path(__file__).resolve().parents[2] / 'static' / 'prompt.txt'
@@ -94,6 +105,43 @@ class IA :
             if last_error is None:
                 raise RuntimeError("Gemini API request failed: no API key or model candidate available")
             raise last_error
+
+    def ask_groq(self, sender, message, save=True):
+        # get or create user
+        user, _ = User.objects.get_or_create(fb_id=sender)
+
+        # extract text from message object
+        message_text = message.get('text', '') if isinstance(message, dict) else str(message)
+
+        # save new message
+        if save:
+            Messages.objects.create(sender=user, role='USER', content=message_text)
+
+        # history messages - use last 20
+        history = Messages.objects.filter(sender=user).order_by('-created_at')[:20]
+        role_map = {'user': 'user', 'bot': 'assistant', 'chatbot': 'assistant'}
+        messages = [
+            {"role": role_map.get(msg.role.lower(), "user"), "content": msg.content}
+            for msg in reversed(history)
+        ]
+
+        try:
+            assistant_text = self.groq_repository.generate_chat_completion(
+                messages,
+                system_prompt=self.get_prompt(),
+            )
+            if save:
+                Messages.objects.create(sender=user, role='CHATBOT', content=assistant_text)
+            return self.clean_text(assistant_text)
+        except Exception:
+            # preserve previous behavior: raise to caller
+            raise
+
+    def ask(self, sender, message, save=True):
+        """Generic ask method that delegates to provider-specific implementations."""
+        if self.provider == 'groq':
+            return self.ask_groq(sender, message, save=save)
+        return self.ask_gemini(sender, message, save=save)
 
     def clean_text(self, text):
         text = text.replace('**', '')
