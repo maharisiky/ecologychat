@@ -11,7 +11,7 @@ scheduler.add_jobstore(MemoryJobStore(), "default")
 
 @register_job(scheduler, IntervalTrigger(seconds=30), name='call_api_healthy', replace_existing=True)
 def call_api_healthy():
-    url = f'{os.getenv('APP_BASE_URL')}/api/health_check/'
+    url = f"{os.getenv('APP_BASE_URL', 'http://localhost:8000')}/api/health_check/"
     try:
         response = requests.get(url)
         print(f"GET {url} status: {response.status_code}")
