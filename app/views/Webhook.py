@@ -87,25 +87,10 @@ class WebhookView(APIView):
                 return Response("ok", status=status.HTTP_200_OK)
 
             # manage payload
-            # if not quick reply : generate response with IA
-            if 'quick_reply' not in message:
-                print("Sending response message")
-                print("Generating response message")
-                response_message = self.ia.ask_gemini(sender_id, message)
-                print(f"Response message: {response_message}")
-            else:
-                payload = message.get('quick_reply', {}).get('payload')
-                print(f"Payload: {payload}")
-
-                # Récupérer la réponse depuis la base de données
-                try:
-                    quick_reply = QuickReply.objects.get(payload=payload, is_active=True)
-                    response_message = quick_reply.response_text
-                except QuickReply.DoesNotExist:
-                    response_message = "Desole, je n'ai pas compris votre demande. Veuillez reessayer."
-                except Exception as e:
-                    logger.exception("Erreur lors de la recuperation de la quick reply: %s", e)
-                    response_message = "Desole, une erreur est survenue. Veuillez reessayer plus tard."
+            print("Sending response message")
+            print("Generating response message")
+            response_message = self.ia.ask_gemini(sender_id, message)
+            print(f"Response message: {response_message}")
 
             self.send_message(sender_id, response_message)
         except Exception:
@@ -129,25 +114,6 @@ class WebhookView(APIView):
             "Content-Type": "application/json"
         }
 
-        # Récupérer les quick replies depuis la base de données
-        quick_replies = []
-        try:
-            from app.models import QuickReply
-            qr_objects = QuickReply.objects.filter(is_active=True)
-            quick_replies = [
-                {"content_type": "text", "title": qr.title, "payload": qr.payload}
-                for qr in qr_objects
-            ]
-        except Exception as e:
-            # Fallback vers les quick replies codées en dur en cas d'erreur
-            print(f"Erreur lors de la récupération des quick replies: {e}")
-            quick_replies = [
-                {"content_type": "text", "title": "À propos", "payload": "ABOUT"},
-                {"content_type": "text", "title": "Savoir-faire", "payload": "SKILLS"},
-                {"content_type": "text", "title": "Événements", "payload": "EVENTS"},
-                {"content_type": "text", "title": "Challenges", "payload": "CHALLENGES"},
-                {"content_type": "text", "title": "Quizz", "payload": "QUIZ"}
-            ]
 
 
         data = {
@@ -156,7 +122,6 @@ class WebhookView(APIView):
             },
             "message": {
                 "text": message_text, 
-                "quick_replies": quick_replies
             }
         }
 

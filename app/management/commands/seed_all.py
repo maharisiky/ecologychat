@@ -7,21 +7,13 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--quick-replies-only',
-            action='store_true',
-            help='Exécuter seulement le seeder des quick replies',
-        )
-        parser.add_argument(
             '--admin-only',
             action='store_true',
             help='Créer seulement le superuser admin',
         )
 
     def handle(self, *args, **options):
-        if options['quick_replies_only']:
-            self.stdout.write('Exécution du seeder des quick replies...')
-            call_command('seed_quickreplies')
-        elif options['admin_only']:
+        if options['admin_only']:
             self.stdout.write('Création du superuser admin...')
             call_command('seed_admin')
         else:
@@ -31,8 +23,8 @@ class Command(BaseCommand):
             self.stdout.write('1. Création du superuser admin...')
             call_command('seed_admin')
             
-            self.stdout.write('2. Seeding quick replies...')
-            call_command('seed_quickreplies')
+            # self.stdout.write('2. Seeding quick replies...')
+            # call_command('seed_quickreplies')
             
             
         self.stdout.write(
