@@ -113,7 +113,12 @@ class ChatbotService:
 
     @staticmethod
     def clean_text(text):
-        return (text or "").replace("**", "")
+        # Nettoyer markdown et caracteres qui bloquent l'affichage Messenger
+        cleaned = (text or "").replace("**", "")
+        cleaned = cleaned.replace("\u202f", " ").replace("\u00a0", " ")
+        # Normaliser les espaces multiples
+        cleaned = re.sub(r" {2,}", " ", cleaned)
+        return cleaned.strip()
 
     def build_model_candidates(self, primary_model):
         normalized_primary = self._normalize_model_name(primary_model)
